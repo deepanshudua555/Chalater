@@ -7,63 +7,28 @@ import {
   Image,
   FlatList,
   List,
+  StyleSheet,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import Icon from 'react-native-vector-icons/Fontisto';
 import Iconn from 'react-native-vector-icons/Entypo';
-import {getAllUser} from '../redux/action';
+import {getAllChats, getAllUser} from '../redux/action';
 import {  TextInput } from 'react-native-paper';
+import DrawerPanel from '../components/DrawerPanel';
+
 var hasAlerted = false;
-const ChatScreen = () => {
-  // const data = [
-  //   {
-  //     _id: '65ba0af7436b3c6631f0de24',
-  //     name: 'tushar Rai',
-  //     email: 'tusharrai132@gmail.com',
-  //     password: '$2b$10$IBLbWPKaeC3gKN1rnXiqAeRAYf1DEiQvoFIZo2VXau78XHsbeojtK',
-  //     pic: 'https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg',
-  //     isAdmin: false,
-  //     verified: true,
-  //     otp: null,
-  //     otp_expiry: null,
-  //     createdAt: '2024-01-31T08:55:19.177Z',
-  //     __v: 0,
-  //   },
-  //   {
-  //     _id: '65ba0b18436b3c6631f0de2c',
-  //     name: 'Tripti singla',
-  //     email: 'singlatripti55@gmail.com',
-  //     password: '$2b$10$8JTLP3kJlbiSkrZt0BVY..pm9bvDGnp2zUgFzFo56ot8Vz573SQiK',
-  //     pic: 'https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg',
-  //     isAdmin: false,
-  //     verified: true,
-  //     otp: null,
-  //     otp_expiry: null,
-  //     createdAt: '2024-01-31T08:55:52.667Z',
-  //     __v: 0,
-  //   },
-  //   {
-  //     _id: '65ba0b5a436b3c6631f0de32',
-  //     name: 'surbhit thakur',
-  //     email: 'tsurbhit5@gmail.com',
-  //     password: '$2b$10$KNFm7dj3EYydkJvU7nfOpeoNwJmxJpK9VCvI53CGTZpzGPueQaK6y',
-  //     pic: 'https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg',
-  //     isAdmin: false,
-  //     verified: true,
-  //     otp: null,
-  //     otp_expiry: null,
-  //     createdAt: '2024-01-31T08:56:58.410Z',
-  //     __v: 0,
-  //   },
-  // ];
+const ChatScreen = ({navigation}) => {
+ 
   const dispatch = useDispatch();
   const {user} = useSelector(state => state.auth);
-  const {loading, message, error, userArray} = useSelector(state => state.auth);
+  const {loading, message, error, userArray, chatArray, accessChatData} =
+    useSelector(state => state.auth);
   const [searchVisible, setSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const toggleSearch = () => {
+    navigation.openDrawer();
     setSearchVisible(!searchVisible);
   };
   const handleSearch = () => {
@@ -74,6 +39,7 @@ const ChatScreen = () => {
     dispatch(getAllUser(searchQuery));
 
   };
+ 
 
   // const handlePress = () => {
   //   console.log('handle Press');
@@ -92,7 +58,7 @@ const ChatScreen = () => {
     //   dispatch({type: 'clearError'});
     // }
     // console.log(hasAlerted);
-    console.log('userArray', userArray);
+    // console.log('userArray', userArray);
 
     if (message && !hasAlerted) {
       Alert.alert('MESSAGE', message, [{text: 'ok'}], {
@@ -101,10 +67,13 @@ const ChatScreen = () => {
       hasAlerted = true;
       dispatch({type: 'clearMessage'});
     }
-  }, [Alert, error, message, dispatch, userArray]);
+    dispatch(getAllChats()); 
+    console.log(JSON.stringify(chatArray));
+  }, [Alert, error, message, dispatch, userArray, accessChatData]);
   return (
     <>
       <StatusBar backgroundColor="#3A69F7" />
+
       <View
         style={{
           backgroundColor: '#3A69F7',
@@ -179,60 +148,109 @@ const ChatScreen = () => {
           backgroundColor: '#fff',
           flex: 12,
         }}>
-        {searchVisible && (
-          <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-            {/* <TextInput
-              style={{
-                height: 40,
-                borderColor: 'gray',
-                borderWidth: 1,
-                marginRight: 10,
-                paddingLeft: 5,
-                flex: 1,
-              }}
-              placeholder="Search..."
-              value={searchQuery}
-              onChangeText={text => setSearchQuery(text)}
-            /> */}
-            <TextInput
-              mode="outlined"
-              outlineColor="#3A69F7"
-              activeOutlineColor="#3A69F7"
-              label="Name*"
-              style={{position: 'absolute', width: 325}}
-              placeholder="Search..."
-              placeholderTextColor="rgba(0, 0, 0, 0.5)"
-              value={searchQuery}
-              onChangeText={text => setSearchQuery(text)}
-            />
-            <TouchableOpacity onPress={handleSearch}>
-              <Text
-                style={{
-                  backgroundColor: '#3A69F7',
-                  color: '#fff',
-                  padding: 10,
-                  borderRadius: 5,
-                  left: 136,
-                  top: 11,
-                }}>
-                Go
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        {userArray != null && (
-          <View>
-            {/* <Text>{JSON.stringify(userArray)}</Text> */}
-            <FlatList
-              data={userArray}
-              keyExtractor={item => item._id}
-              renderItem={({item}) => <Text>{item.name}</Text>}
-            />
-          </View>
-        )}
+        {/* <Text>
+          {chatArray?JSON.stringify(chatArray):hi}
+        </Text> */}
+        {/* <View>
+          {chatArray?.map((chat, index) => (
+            <View key={index}>
+              {chat.users.map(cuser => (
+                <View key={cuser._id}>
+                  {cuser.name !== user.name && (
+                    <View>
+                      <Text>{cuser.name}</Text>
+                      <Text>{cuser.email}</Text>
+                      <Image
+                        source={{uri: cuser.pic}}
+                        style={{width: 100, height: 100}}
+                      />
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          ))}
+        </View> */}
+
+        <View>
+          {chatArray?.map((chat, index) => (
+            <View key={index}>
+              {chat.users.map(cuser => (
+                <View key={cuser._id}>
+                  {cuser.name !== user.name && (
+                    <TouchableOpacity style={styles.chatItem}>
+                      <Image source={{uri: cuser.pic}} style={styles.avatar} />
+                      <View style={styles.chatInfo}>
+                        <Text style={styles.name}>{cuser.name}</Text>
+                        <Text style={styles.email}>{cuser.email}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
       </View>
     </>
   );
 };
 
 export default ChatScreen;
+
+
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  chatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 12,
+  },
+  chatInfo: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  message: {
+    fontSize: 16,
+    color: '#666',
+  },
+  chatMeta: {
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
+  time: {
+    fontSize: 12,
+    color: '#999',
+  },
+  unreadBadge: {
+    backgroundColor: '#128C7E',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginTop: 4,
+  },
+  unreadCount: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+});
+
+
+
+

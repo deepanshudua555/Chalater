@@ -1,5 +1,6 @@
 import axios from 'axios';
-const serverUrl = 'http://192.168.0.196:5000/api/user';
+const serverUrl = 'http://192.168.0.193:5000/api/user';
+const serverUrlT = 'http://192.168.0.193:5000/api/chat';
 
 export const registerProfile =
   (name, email, password, pic) => async dispatch => {
@@ -43,7 +44,7 @@ export const login = (email, password) => async dispatch => {
         },
       },
     );
-
+    console.log('data', data);
     dispatch({type: 'loginSuccess', payload: data});
   } catch (error) {
     console.log(error + ' Hi i am error');
@@ -59,7 +60,7 @@ export const loadUser = () => async dispatch => {
 
     dispatch({type: 'loadUserSuccess', payload: data});
   } catch (error) {
-    console.log('error.response.data.message', error);
+    console.log('error.response.data.message.loadUser', error);
     dispatch({type: 'loadUserFailure', payload: error.response.data.message});
   }
 };
@@ -67,22 +68,76 @@ export const getAllUser = search => async dispatch => {
   try {
     dispatch({type: 'getAllUserRequest'});
 
-    const {data} = await axios.get(
-      `${serverUrl}/getalluser?search=${search}`,
+    const {data} = await axios.get(`${serverUrl}/getalluser?search=${search}`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    // console.log(data);
+
+    dispatch({type: 'getAllUserSuccess', payload: data});
+  } catch (error) {
+    console.log(error);
+    dispatch({
+      type: 'getAllUserFailure',
+      payload: error.response.data.message,
+    });
+  }
+};
+
+export const accessChat = userId => async dispatch => {
+  try {
+    dispatch({type: 'accessChatRequest'});
+    console.log('in accessChat', userId);
+    const {data} = await axios.post(
+      `${serverUrlT}/accesschat`,
+      {userId},
       {
         headers: {
           'Content-Type': 'application/json',
         },
       },
     );
-    // console.log(data);
-
-    dispatch({type: 'getAllUserSuccess', payload: data});
+    console.log('data', data);
+    dispatch({type: 'accessChatSuccess', payload: data});
   } catch (error) {
     console.log(error);
-    // dispatch({
-    //   type: 'getAllUserFailure',
-    //   payload: error.response.data.message,
-    // });
+    dispatch({
+      type: 'accessChatFailure',
+      payload: error.response.data.message,
+    });
+  }
+};
+
+export const getAllChats =()=> async dispatch => {
+  console.log("in getAllChats from server");
+  try {
+    dispatch({type: 'getAllChatsRequest'});
+    const {data} = await axios.get(`${serverUrlT}/getallchats`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    // console.log(data);
+
+    dispatch({type: 'getAllChatsSuccess', payload: data});
+  } catch (error) {
+    console.log("error");
+    dispatch({
+      type: 'getAllChatsFailure',
+      payload: error.response.data.message,
+    });
+  }
+};
+
+export const logout = () => async dispatch => {
+  try {
+    dispatch({type: 'logoutRequest'});
+
+    await axios.get(`${serverUrl}/logout`);
+
+    dispatch({type: 'logoutSuccess'});
+  } catch (error) {
+    dispatch({type: 'logoutFailure', payload: error.response.data.message});
   }
 };
